@@ -107,6 +107,8 @@ MainWindow::MainWindow(QString const &fileToOpen)
 	mErrorReporter = new gui::ErrorReporter(mUi->errorListWidget, mUi->errorDock);
 	mErrorReporter->updateVisibility(SettingsManager::value("warningWindow").toBool());
 
+	mUi->propertyEditor->setErrorReporter(mErrorReporter);
+
 	mPreferencesDialog.init(mUi->actionShow_grid, mUi->actionShow_alignment
 			, mUi->actionSwitch_on_grid, mUi->actionSwitch_on_alignment);
 

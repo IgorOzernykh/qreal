@@ -4,6 +4,7 @@
 
 #include "mainwindow/mainWindow.h"
 #include "controller/commands/changePropertyCommand.h"
+#include "qrutils/expressionsParser/expressionsParser.h"
 
 PropertyEditorView::PropertyEditorView(QWidget *parent)
 		: QWidget(parent), mChangingPropertyValue(false)
@@ -14,6 +15,7 @@ PropertyEditorView::PropertyEditorView(QWidget *parent)
 		, mButtonManager(NULL)
 		, mButtonFactory(NULL)
 		, mController(NULL)
+		, mErrorReporter(NULL)
 {
 	mPropertyEditor->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 }
@@ -48,6 +50,11 @@ void PropertyEditorView::setModel(PropertyEditorModel *model)
 void PropertyEditorView::scrollTo(const QModelIndex &, QAbstractItemView::ScrollHint)
 {
 	// do nothing
+}
+
+void PropertyEditorView::setErrorReporter(ErrorReporterInterface *errorReporter)
+{
+	mErrorReporter = errorReporter;
 }
 
 void PropertyEditorView::reset()
@@ -93,7 +100,7 @@ void PropertyEditorView::setRootIndex(const QModelIndex &index)
 			type = QVariant::Int;
 		} else if (typeName == "bool") {
 			type = QVariant::Bool;
-		} else if (typeName == "string") {
+		} else if (typeName == "string" || typeName == "expression") {
 			type = QVariant::String;
 		} else if (typeName == "code" || typeName == "directorypath") {
 			isButton = true;
@@ -141,7 +148,12 @@ void PropertyEditorView::dataChanged(const QModelIndex &, const QModelIndex &)
 			if (property->propertyType() == QtVariantPropertyManager::enumTypeId()) {
 				value = enumPropertyIndexOf(valueIndex, value.toString());
 			}
-
+			QString typeName = mModel->typeName(valueIndex).toLower();
+			if (typeName == "expression") {
+				utils::ExpressionsParser expressionParser(mErrorReporter);
+				int startPos = 0;
+				value = expressionParser.parseExpression(value.toString(), startPos)->toString();
+			}
 			setPropertyValue(property, value);
 			property->setToolTip(value.toString());
 		}

@@ -9,6 +9,7 @@
 
 #include "thirdparty/qtpropertybrowser/src/qttreepropertybrowser.h"
 #include "models/logicalModelAssistApi.h"
+#include "toolPluginInterface/usedInterfaces/errorReporterInterface.h"
 
 #include "view/private/pushButtonProperty.h"
 
@@ -31,6 +32,8 @@ public:
 	void init(qReal::MainWindow *mainWindow, qReal::models::LogicalModelAssistApi * const logicalModelAssistApi);
 	/** @brief unimplemented */
 	void scrollTo(const QModelIndex &index, QAbstractItemView::ScrollHint hint = QAbstractItemView::EnsureVisible);
+
+	void setErrorReporter(qReal::ErrorReporterInterface *errorReporter);
 
 	PropertyEditorModel* model() {
 		return mModel;
@@ -70,4 +73,5 @@ private:
 	PushButtonPropertyManager *mButtonManager;
 	PushButtonFactory *mButtonFactory;
 	qReal::Controller *mController;
+	qReal::ErrorReporterInterface *mErrorReporter;
 };
