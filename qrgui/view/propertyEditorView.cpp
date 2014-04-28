@@ -149,7 +149,7 @@ void PropertyEditorView::dataChanged(const QModelIndex &, const QModelIndex &)
 				value = enumPropertyIndexOf(valueIndex, value.toString());
 			}
 			QString typeName = mModel->typeName(valueIndex).toLower();
-			if (typeName == "expression") {
+			if (typeName == "expression" && value != "") {
 				utils::ExpressionsParser expressionParser(mErrorReporter);
 				int startPos = 0;
 				value = expressionParser.parseExpression(value.toString(), startPos)->toString();

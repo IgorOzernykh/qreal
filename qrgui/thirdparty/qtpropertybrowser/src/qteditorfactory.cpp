@@ -960,7 +960,7 @@ public:
     void slotEditingFinished();
     void slotTextEdited(const QString &text);
 private:
-    QString m_text;
+    QString m_value;
 };
 
 void QtLineEditFactoryPrivate::slotPropertyChanged(QtProperty *property,
@@ -1056,12 +1056,12 @@ void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
 
 void QtLineEditFactoryPrivate::slotEditingFinished()
 {
-    slotSetValue(m_text);
+    slotSetValue(m_value);
 }
 
-void QtLineEditFactoryPrivate::slotTextEdited(const QString &text)
+void QtLineEditFactoryPrivate::slotTextEdited(const QString &value)
 {
-    m_text = text;
+    m_value = value;
 }
 
 
@@ -1136,6 +1136,8 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
                 this, SLOT(slotEditingFinished()));
     connect(editor, SIGNAL(destroyed(QObject *)),
                 this, SLOT(slotEditorDestroyed(QObject *)));
+
+    emit editor->textEdited(editor->text());
     return editor;
 }
 
