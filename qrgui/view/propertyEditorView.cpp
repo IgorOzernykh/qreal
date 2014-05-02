@@ -149,10 +149,33 @@ void PropertyEditorView::dataChanged(const QModelIndex &, const QModelIndex &)
 				value = enumPropertyIndexOf(valueIndex, value.toString());
 			}
 			QString typeName = mModel->typeName(valueIndex).toLower();
-			if (typeName == "expression" && value != "") {
+			if (typeName == "expression" && value.toString() != "") {
 				utils::ExpressionsParser expressionParser(mErrorReporter);
+				for (int j = 0, rows = mModel->rowCount(QModelIndex()); j < rows; ++j) {
+					if (i == j)
+						continue;
+					QModelIndex const &tmpValueIndex = mModel->index(j, 1);
+					QString tmpTypeName = mModel->typeName(tmpValueIndex).toLower();
+					if (tmpTypeName != "expression")
+						continue;
+					QtVariantProperty *tmpProperty = dynamic_cast<QtVariantProperty*>(mPropertyEditor->properties().at(j));
+					QVariant tmpValue = tmpValueIndex.data();
+					if (tmpValue.toString() == "")
+						continue;
+					if (tmpProperty) {
+						if (tmpProperty->propertyType() == QtVariantPropertyManager::enumTypeId()) {
+							tmpValue = enumPropertyIndexOf(tmpValueIndex, tmpValue.toString());
+						}
+						expressionParser.mutableVariables().insert(tmpProperty->propertyName()
+										, new utils::Number(tmpValue, utils::Number::Type::doubleType));
+					}
+				}
 				int startPos = 0;
 				value = expressionParser.parseExpression(value.toString(), startPos)->toString();
+				QMap<QString, utils::Number *>::const_iterator i;
+				for (i = expressionParser.mutableVariables().constBegin(); i != expressionParser.mutableVariables().constEnd(); ++i) {
+					delete i.value();
+				}
 			}
 			setPropertyValue(property, value);
 			property->setToolTip(value.toString());

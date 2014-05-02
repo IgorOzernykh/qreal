@@ -246,6 +246,8 @@ Number *ExpressionsParser::parseTerm(QString const &stream, int &pos)
 				}
 			} else if (mVariables.contains(variable)) {
 				res = new Number(mVariables[variable]->value(), mVariables[variable]->type());
+				int startPos = 0;
+				res = parseExpression(res->toString(), startPos);
 			} else {
 				error(unknownIdentifier, QString::number(unknownIdentifierIndex + 1), "", variable);
 			}
