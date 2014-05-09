@@ -346,6 +346,7 @@ public:
     void slotReadOnlyChanged(QtProperty *property, bool readOnly);
     void slotPropertyInserted(QtProperty *property, QtProperty *parent, QtProperty *after);
     void slotPropertyRemoved(QtProperty *property, QtProperty *parent);
+    void slotShowExprRequested(QtProperty *property);
 
     void valueChanged(QtProperty *property, const QVariant &val);
 
@@ -482,6 +483,14 @@ void QtVariantPropertyManagerPrivate::valueChanged(QtProperty *property, const Q
         return;
     emit q_ptr->valueChanged(varProp, val);
     emit q_ptr->propertyChanged(varProp);
+}
+
+void QtVariantPropertyManagerPrivate::slotShowExprRequested(QtProperty *property)
+{
+    QtVariantProperty *varProp = m_internalToProperty.value(property, 0);
+    if (!varProp)
+        return;
+    emit q_ptr->showExprRequested(varProp);
 }
 
 void QtVariantPropertyManagerPrivate::slotValueChanged(QtProperty *property, int val)
@@ -1011,6 +1020,8 @@ QtVariantPropertyManager::QtVariantPropertyManager(QObject *parent)
                 this, SLOT(slotEchoModeChanged(QtProperty*, int)));
     connect(stringPropertyManager, SIGNAL(readOnlyChanged(QtProperty*, bool)),
                 this, SLOT(slotReadOnlyChanged(QtProperty*, bool)));
+    connect(stringPropertyManager, SIGNAL(showExprRequested(QtProperty *)),
+                this, SLOT(slotShowExprRequested(QtProperty *)));
 
     // DatePropertyManager
     QtDatePropertyManager *datePropertyManager = new QtDatePropertyManager(this);

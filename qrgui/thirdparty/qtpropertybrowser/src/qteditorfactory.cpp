@@ -954,7 +954,7 @@ public:
 
     void slotPropertyChanged(QtProperty *property, const QString &value);
     void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
-    void slotSetValue(const QString &value);
+    void slotSetValue(const QString &value, QObject *object = nullptr, bool showExprRequested = false);
     void slotEchoModeChanged(QtProperty *, int);
     void slotReadOnlyChanged(QtProperty *, bool);
     void slotEditingFinished();
@@ -1039,17 +1039,21 @@ void QtLineEditFactoryPrivate::slotReadOnlyChanged( QtProperty *property, bool r
     }
 }
 
-void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
+void QtLineEditFactoryPrivate::slotSetValue(const QString &value, QObject *object, bool showExprRequested)
 {
-    QObject *object = q_ptr->sender();
+    if (!showExprRequested) {
+        object = q_ptr->sender();
+    }
     const QMap<QLineEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
     for (QMap<QLineEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
         if (itEditor.key() == object) {
             QtProperty *property = itEditor.value();
+            if (showExprRequested && property->displayText() == "")
+                return;
             QtStringPropertyManager *manager = q_ptr->propertyManager(property);
             if (!manager)
                 return;
-            manager->setValue(property, value);
+            manager->setValue(property, value, showExprRequested);
             return;
         }
 }
@@ -1129,6 +1133,7 @@ QWidget *QtLineEditFactory::createEditor(QtStringPropertyManager *manager,
         editor->setValidator(validator);
     }
     editor->setText(manager->value(property));
+    editor->installEventFilter(this);
 
     connect(editor, SIGNAL(textEdited(const QString &)),
                 this, SLOT(slotTextEdited(const QString &)));
@@ -1157,6 +1162,15 @@ void QtLineEditFactory::disconnectPropertyManager(QtStringPropertyManager *manag
     disconnect(manager, SIGNAL(readOnlyChanged(QtProperty*, bool)),
         this, SLOT(slotReadOnlyChanged(QtProperty *, bool)));
 
+}
+
+bool QtLineEditFactory::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QEvent::FocusIn) {
+        d_ptr->slotSetValue("", watched, true);
+        return true;
+    }
+    return false;
 }
 
 // QtDateEditFactory

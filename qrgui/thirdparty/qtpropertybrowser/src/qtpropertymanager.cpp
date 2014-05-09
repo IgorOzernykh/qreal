@@ -1459,8 +1459,13 @@ QString QtStringPropertyManager::displayText(const QtProperty *property) const
 
     \sa value(), setRegExp(), valueChanged()
 */
-void QtStringPropertyManager::setValue(QtProperty *property, const QString &val)
+void QtStringPropertyManager::setValue(QtProperty *property, const QString &val, bool showExprReq)
 {
+    if (showExprReq) {
+        emit showExprRequested(property);
+        return;
+    }
+
     const QtStringPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
     if (it == d_ptr->m_values.end())
         return;

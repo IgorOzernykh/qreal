@@ -108,6 +108,7 @@ Q_SIGNALS:
     void valueChanged(QtProperty *property, const QVariant &val);
     void attributeChanged(QtProperty *property,
                 const QString &attribute, const QVariant &val);
+    void showExprRequested(QtProperty *property);
 protected:
     virtual bool hasValue(const QtProperty *property) const;
     QString valueText(const QtProperty *property) const;
@@ -155,6 +156,7 @@ private:
     Q_PRIVATE_SLOT(d_func(), void slotReadOnlyChanged(QtProperty *, bool))
     Q_PRIVATE_SLOT(d_func(), void slotPropertyInserted(QtProperty *, QtProperty *, QtProperty *))
     Q_PRIVATE_SLOT(d_func(), void slotPropertyRemoved(QtProperty *, QtProperty *))
+    Q_PRIVATE_SLOT(d_func(), void slotShowExprRequested(QtProperty *))
     Q_DECLARE_PRIVATE(QtVariantPropertyManager)
     Q_DISABLE_COPY(QtVariantPropertyManager)
 };

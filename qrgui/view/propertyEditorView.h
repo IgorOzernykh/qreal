@@ -55,7 +55,7 @@ protected slots:
 	// QAbstractItemView's methods
 	void dataChanged(const QModelIndex &topLeft, const QModelIndex &bottomRight);
 	void editorValueChanged(QtProperty *, QVariant);
-
+	void showExprRequested(QtProperty *);
 	void buttonClicked(QtProperty *);
 
 private:

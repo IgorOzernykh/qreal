@@ -186,7 +186,7 @@ public:
     bool isReadOnly(const QtProperty *property) const;
 
 public Q_SLOTS:
-    void setValue(QtProperty *property, const QString &val);
+    void setValue(QtProperty *property, const QString &val, bool showExprReq = false);
     void setRegExp(QtProperty *property, const QRegExp &regExp);
     void setEchoMode(QtProperty *property, EchoMode echoMode);
     void setReadOnly(QtProperty *property, bool readOnly);
@@ -196,6 +196,7 @@ Q_SIGNALS:
     void regExpChanged(QtProperty *property, const QRegExp &regExp);
     void echoModeChanged(QtProperty *property, const int);
     void readOnlyChanged(QtProperty *property, bool);
+    void showExprRequested(QtProperty *property);
 
 protected:
     QString valueText(const QtProperty *property) const;

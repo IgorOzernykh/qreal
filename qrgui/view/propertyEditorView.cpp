@@ -134,6 +134,8 @@ void PropertyEditorView::setRootIndex(const QModelIndex &index)
 			, this, SLOT(buttonClicked(QtProperty*)));
 	connect(mVariantManager, SIGNAL(valueChanged(QtProperty*, QVariant))
 			, this, SLOT(editorValueChanged(QtProperty *, QVariant)));
+	connect(mVariantManager, SIGNAL(showExprRequested(QtProperty *))
+			, this, SLOT(showExprRequested(QtProperty *)));
 	mPropertyEditor->setPropertiesWithoutValueMarked(true);
 	mPropertyEditor->setRootIsDecorated(false);
 }
@@ -148,35 +150,39 @@ void PropertyEditorView::dataChanged(const QModelIndex &, const QModelIndex &)
 			if (property->propertyType() == QtVariantPropertyManager::enumTypeId()) {
 				value = enumPropertyIndexOf(valueIndex, value.toString());
 			}
+
 			QString typeName = mModel->typeName(valueIndex).toLower();
 			if (typeName == "expression" && value.toString() != "") {
 				utils::ExpressionsParser expressionParser(mErrorReporter);
 				for (int j = 0, rows = mModel->rowCount(QModelIndex()); j < rows; ++j) {
 					if (i == j)
 						continue;
+
 					QModelIndex const &tmpValueIndex = mModel->index(j, 1);
 					QString tmpTypeName = mModel->typeName(tmpValueIndex).toLower();
 					if (tmpTypeName != "expression")
 						continue;
+
 					QtVariantProperty *tmpProperty = dynamic_cast<QtVariantProperty*>(mPropertyEditor->properties().at(j));
 					QVariant tmpValue = tmpValueIndex.data();
 					if (tmpValue.toString() == "")
 						continue;
+
 					if (tmpProperty) {
 						if (tmpProperty->propertyType() == QtVariantPropertyManager::enumTypeId()) {
 							tmpValue = enumPropertyIndexOf(tmpValueIndex, tmpValue.toString());
 						}
+
 						expressionParser.mutableVariables().insert(tmpProperty->propertyName()
-										, new utils::Number(tmpValue, utils::Number::Type::doubleType));
+									, new utils::Number(tmpValue, utils::Number::Type::doubleType));
 					}
 				}
+
 				int startPos = 0;
 				value = expressionParser.parseExpression(value.toString(), startPos)->toString();
-				QMap<QString, utils::Number *>::const_iterator i;
-				for (i = expressionParser.mutableVariables().constBegin(); i != expressionParser.mutableVariables().constEnd(); ++i) {
-					delete i.value();
-				}
+				qDeleteAll(expressionParser.mutableVariables());
 			}
+
 			setPropertyValue(property, value);
 			property->setToolTip(value.toString());
 		}
@@ -242,6 +248,14 @@ void PropertyEditorView::editorValueChanged(QtProperty *prop, QVariant value)
 	qReal::commands::ChangePropertyCommand *changeCommand =
 			new qReal::commands::ChangePropertyCommand(mModel, index, oldValue, value);
 	mController->execute(changeCommand);
+}
+
+void PropertyEditorView::showExprRequested(QtProperty *prop)
+{
+	QtVariantProperty *property = dynamic_cast<QtVariantProperty*>(prop);
+	int row = mPropertyEditor->properties().indexOf(property);
+	QModelIndex const &index = mModel->index(row, 1);
+	property->setValue(mModel->data(index).toString());
 }
 
 void PropertyEditorView::setPropertyValue(QtVariantProperty *property, const QVariant &value)
