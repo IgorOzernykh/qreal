@@ -184,9 +184,10 @@ public:
     QRegExp regExp(const QtProperty *property) const;
     EchoMode echoMode(const QtProperty *property) const;
     bool isReadOnly(const QtProperty *property) const;
+    void showExpression(QtProperty *property);
 
 public Q_SLOTS:
-    void setValue(QtProperty *property, const QString &val, bool showExprReq = false);
+    void setValue(QtProperty *property, const QString &val);
     void setRegExp(QtProperty *property, const QRegExp &regExp);
     void setEchoMode(QtProperty *property, EchoMode echoMode);
     void setReadOnly(QtProperty *property, bool readOnly);

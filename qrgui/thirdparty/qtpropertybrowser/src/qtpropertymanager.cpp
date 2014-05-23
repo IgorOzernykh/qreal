@@ -1422,6 +1422,11 @@ bool QtStringPropertyManager::isReadOnly(const QtProperty *property) const
     return getData<bool>(d_ptr->m_values, &QtStringPropertyManagerPrivate::Data::readOnly, property, false);
 }
 
+void QtStringPropertyManager::showExpression(QtProperty *property)
+{
+    emit showExprRequested(property);
+}
+
 /*!
     \reimp
 */
@@ -1459,13 +1464,8 @@ QString QtStringPropertyManager::displayText(const QtProperty *property) const
 
     \sa value(), setRegExp(), valueChanged()
 */
-void QtStringPropertyManager::setValue(QtProperty *property, const QString &val, bool showExprReq)
+void QtStringPropertyManager::setValue(QtProperty *property, const QString &val)
 {
-    if (showExprReq) {
-        emit showExprRequested(property);
-        return;
-    }
-
     const QtStringPropertyManagerPrivate::PropertyValueMap::iterator it = d_ptr->m_values.find(property);
     if (it == d_ptr->m_values.end())
         return;

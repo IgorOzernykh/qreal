@@ -954,11 +954,12 @@ public:
 
     void slotPropertyChanged(QtProperty *property, const QString &value);
     void slotRegExpChanged(QtProperty *property, const QRegExp &regExp);
-    void slotSetValue(const QString &value, QObject *object = nullptr, bool showExprRequested = false);
+    void slotSetValue(const QString &value);
     void slotEchoModeChanged(QtProperty *, int);
     void slotReadOnlyChanged(QtProperty *, bool);
     void slotEditingFinished();
     void slotTextEdited(const QString &text);
+    void showExpression(QObject *object);
 private:
     QString m_value;
 };
@@ -1039,21 +1040,33 @@ void QtLineEditFactoryPrivate::slotReadOnlyChanged( QtProperty *property, bool r
     }
 }
 
-void QtLineEditFactoryPrivate::slotSetValue(const QString &value, QObject *object, bool showExprRequested)
+void QtLineEditFactoryPrivate::slotSetValue(const QString &value)
 {
-    if (!showExprRequested) {
-        object = q_ptr->sender();
-    }
+    QObject *object = q_ptr->sender();
     const QMap<QLineEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
     for (QMap<QLineEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
         if (itEditor.key() == object) {
             QtProperty *property = itEditor.value();
-            if (showExprRequested && property->displayText() == "")
+            QtStringPropertyManager *manager = q_ptr->propertyManager(property);
+            if (!manager)
+                return;
+            manager->setValue(property, value);
+            return;
+        }
+}
+
+void QtLineEditFactoryPrivate::showExpression(QObject *object)
+{
+    const QMap<QLineEdit *, QtProperty *>::ConstIterator ecend = m_editorToProperty.constEnd();
+    for (QMap<QLineEdit *, QtProperty *>::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+        if (itEditor.key() == object) {
+            QtProperty *property = itEditor.value();
+            if (property->displayText() == "")
                 return;
             QtStringPropertyManager *manager = q_ptr->propertyManager(property);
             if (!manager)
                 return;
-            manager->setValue(property, value, showExprRequested);
+            manager->showExpression(property);
             return;
         }
 }
@@ -1167,7 +1180,7 @@ void QtLineEditFactory::disconnectPropertyManager(QtStringPropertyManager *manag
 bool QtLineEditFactory::eventFilter(QObject *watched, QEvent *event)
 {
     if (event->type() == QEvent::FocusIn) {
-        d_ptr->slotSetValue("", watched, true);
+        d_ptr->showExpression(watched);
         return true;
     }
     return false;
